@@ -10,28 +10,27 @@ from scrapy.selector import Selector
 
 class SearchspiderSpider(scrapy.Spider):
     name = "searchspider"
-    allowed_domains = ["market.bisnis.com"]
-    start_urls = ["https://market.bisnis.com/read/20240529/7/1769261/saham-bren-prajogo-pangestu-langsung-arb-10-akibat-ppk-full-call-auction"]
+    # start_urls = ["https://market.bisnis.com/read/20240529/7/1769261/saham-bren-prajogo-pangestu-langsung-arb-10-akibat-ppk-full-call-auction"]
     custom_settings ={
             'FEEDS' :{
                 'booksdata.json' : {'format':'json' , 'overwrite':True}
-            }
+            },
         }
-    rules = (
-        Rule(LinkExtractor(allow=(), restrict_xpaths='//a'), callback='parse_link'),
-    )
+    
+
+    def __init__(self, *args, **kwargs): 
+      super(SearchspiderSpider, self).__init__(*args, **kwargs) 
+      self.start_urls = [kwargs.get('start_url')] 
+      self.allowed_domains = kwargs.get('allowed_domains', [])  # Default to empty list
+      self.rules = (
+            Rule(LinkExtractor(allow=self.allowed_domains), callback='parse', follow=True),
+            )
+
     def parse(self, response):
         book_item = SearchindexingItem()
-        # res = response.body
-        # soup = BeautifulSoup(res, 'html.parser')
-        # text = soup.get_text(separator=' ')  # Get text with spaces as separator
-        # clean_text = re.sub(r'\s+', ' ', text).strip()  # Replace multiple spaces with single space and strip whitespace
-        # book_item['content'] = clean_text  # Option 1 result
-        # print(book_item['content'])
-        # selector = Selector(response)
 
         res = response.body
-        encoded_body = res.decode('utf-8')
+        # encoded_body = res.decode('utf-8')
         book_item['name'] = response.url,
         title = response.css('title::text').get()
         book_item['title'] = title
@@ -50,12 +49,9 @@ class SearchspiderSpider(scrapy.Spider):
         clean_text = re.sub(r'\s+', ' ', text).strip()  # Replace multiple spaces with single space and strip whitespace
         book_item['content'] = clean_text  # Option 1 result
         # EXTRACT ALL LINKS IN CURRENT PAGES ===============================
-        extracted_links = []
-        for link in LinkExtractor(allow=(), restrict_xpaths='//a').extract_links(response):
-            # Get the absolute URL using response.urljoin
-            absolute_url = response.urljoin(link.url)
-            extracted_links.append(absolute_url)  # Append URLs to the list
-            
+        # extracted_links = []
+        extracted_links = [link.url for link in LinkExtractor(allow=self.allowed_domains).extract_links(response)]
+   
         book_item['set_url'] = extracted_links
         # get html tags -------------------------------
         # Extract and count unique tags (excluding text and self-closing tags)
@@ -100,6 +96,9 @@ class SearchspiderSpider(scrapy.Spider):
         build_hierarchy(soup)  # Start building hierarchy from the root element
          # Add tuple (tag, class)
         book_item['class_tags'] =list(extracted_data)
+        
+        print('-----------------', self.allowed_domains)
+
 
 
         yield book_item
