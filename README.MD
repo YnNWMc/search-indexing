@@ -8,3 +8,7 @@
 - .\venv\Scripts\activate
 - pip install scrapy
 - scrapy startproject bookscraper
+
+
+
+- !perhatikan api url , settings.py

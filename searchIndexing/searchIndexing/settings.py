@@ -65,8 +65,10 @@ ROBOTSTXT_OBEY = True
 ITEM_PIPELINES = {
 #    "searchIndexing.pipelines.SearchindexingPipeline": 300,
    "searchIndexing.pipelines.SaveToMongoDBPipeline": 400,
+    "searchIndexing.pipelines.SendURLToAPIPipeline": 500,  # Adjust the priority as needed
 
 }
+API_URL = 'http://127.0.0.1:5001/api/post_url'  # Replace with your API endpoint URL
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

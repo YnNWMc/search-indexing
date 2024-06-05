@@ -40,3 +40,33 @@ class SaveToMongoDBPipeline:
   def close_spider(self,spider):
     # Close connection
     self.client.close()
+
+import requests
+import json
+from scrapy.exceptions import DropItem
+
+class SendURLToAPIPipeline:
+    def __init__(self, api_url):
+        self.api_url = api_url
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            api_url=crawler.settings.get('API_URL')
+        )
+
+    def process_item(self, item, spider):
+        if 'set_url' not in item:
+            raise DropItem("Missing 'set_url' field in item")
+
+        set_urls = item['set_url']
+        payload = {'urls': set_urls}
+
+        try:
+            response = requests.post(self.api_url, json=payload)
+            response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
+            spider.logger.info(f"URLs sent to API: {set_urls}")
+        except requests.RequestException as e:
+            spider.logger.error(f"Failed to send URLs to API: {e}")
+
+        return item
