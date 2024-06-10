@@ -60,7 +60,7 @@ class SendURLToAPIPipeline:
             raise DropItem("Missing 'set_url' field in item")
 
         set_urls = item['set_url']
-        payload = {'urls': set_urls}
+        payload = {'webId':item['webId'],'urls': set_urls}
 
         try:
             response = requests.post(self.api_url, json=payload)

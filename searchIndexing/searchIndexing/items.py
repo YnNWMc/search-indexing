@@ -9,6 +9,7 @@ import scrapy
 class SearchindexingItem(scrapy.Item):
     # define the fields for your item here like:
     _id = scrapy.Field(serializer=str)
+    webId = scrapy.Field()
     name = scrapy.Field()
     title = scrapy.Field()
     body = scrapy.Field()

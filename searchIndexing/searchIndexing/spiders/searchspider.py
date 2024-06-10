@@ -7,6 +7,15 @@ from bs4 import BeautifulSoup  # Import BeautifulSoup
 import re
 from collections import Counter  # Import Counter for counting unique elements
 from scrapy.selector import Selector
+from datetime import datetime
+import random
+import string
+
+def generate_unique_id():
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')  # Current timestamp in a specific format
+    random_str = ''.join(random.choices(string.ascii_letters + string.digits, k=6))  # Random string of 6 characters
+    unique_id = f"{timestamp}_{random_str}"
+    return unique_id
 
 class SearchspiderSpider(scrapy.Spider):
     name = "searchspider"
@@ -28,6 +37,7 @@ class SearchspiderSpider(scrapy.Spider):
 
     def parse(self, response):
         book_item = SearchindexingItem()
+        book_item['webId']=generate_unique_id()
 
         res = response.body
         # encoded_body = res.decode('utf-8')

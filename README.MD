@@ -11,4 +11,4 @@
 
 
 
-- !perhatikan api url , settings.py
+ 
