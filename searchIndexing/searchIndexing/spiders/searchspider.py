@@ -104,7 +104,7 @@ class SearchspiderSpider(scrapy.Spider):
             extracted_data.append(closing_entry)
 
         build_hierarchy(soup)  # Start building hierarchy from the root element
-         # Add tuple (tag, class)
+        # Add tuple (tag, class)
         book_item['class_tags'] =list(extracted_data)
         
         print('-----------------', self.allowed_domains)

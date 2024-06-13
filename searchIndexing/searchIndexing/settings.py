@@ -64,7 +64,7 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
 #    "searchIndexing.pipelines.SearchindexingPipeline": 300,
-   "searchIndexing.pipelines.SaveToMongoDBPipeline": 400,
+    "searchIndexing.pipelines.SaveToMongoDBPipeline": 400,
     "searchIndexing.pipelines.SendURLToAPIPipeline": 500,  # Adjust the priority as needed
 
 }
