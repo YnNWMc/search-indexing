@@ -1,3 +1,21 @@
+# Elasticsearch configuration
+ELASTICSEARCH_HOST = 'localhost'
+ELASTICSEARCH_PORT = 9200
+ELASTICSEARCH_SCHEME = 'https'  # Use 'https' if your Elasticsearch setup requires HTTPS
+ELASTICSEARCH_USERNAME = 'elastic'
+ELASTICSEARCH_PASSWORD = '+W0exDtj1WDxoyIh1Y+k'
+ELASTICSEARCH_VERIFY_CERTS = False
+
+# Configure Elasticsearch connection
+ELASTICSEARCH_SETTINGS = {
+    'host': ELASTICSEARCH_HOST,
+    'port': ELASTICSEARCH_PORT,
+    'scheme': ELASTICSEARCH_SCHEME,
+    'http_auth': (ELASTICSEARCH_USERNAME, ELASTICSEARCH_PASSWORD),
+    'verify_certs': False  # Adjust as needed (True/False) based on your Elasticsearch setup
+}
+
+LOG_FILE_PATH = str("C:\File Coding Cloud Project\Project\search-indexing\logs\application.log")  # Path to the log file to be uploaded to Elasticsearch
 # Scrapy settings for searchIndexing project
 #
 # For simplicity, this file contains only settings considered important or
@@ -95,3 +113,10 @@ API_URL = 'http://127.0.0.1:5001/api/post_url'  # Replace with your API endpoint
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+
+def get_elasticsearch_settings():
+    return ELASTICSEARCH_SETTINGS
+
+def get_log_file_path():
+    return LOG_FILE_PATH

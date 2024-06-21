@@ -1,2 +1,0 @@
-INFO:werkzeug:127.0.0.1 - - [13/Jun/2024 11:01:47] "[35m[1mGET /scraped-data HTTP/1.1[0m" 500 -
-INFO:werkzeug: * Detected change in 'C:\\File Coding Cloud Project\\Project\\search-indexing\\api-downloader\\api.py', reloading

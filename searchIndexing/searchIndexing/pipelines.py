@@ -6,13 +6,27 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-import logging
+import sys, os
 
+# PATHNYA AGAK GAK JELAS BUAT IMPORT
+relative_path = "custom_logger.py"
+absolute_path = os.path.abspath(relative_path)
+path_components = absolute_path.split(os.path.sep)
+path_components.pop()
+path_components.pop()
+full_path = os.path.join(*path_components, "logger")
+full_path_with_drive = str(os.path.join(path_components[0], os.path.sep, full_path))
+
+sys.path.insert(1, str(full_path_with_drive))
+import custom_logger as CustomLogger
+
+log_folder = 'C:\\File Coding Cloud Project\\Project\\search-indexing\\logs'
+logger = CustomLogger.CustomLogger(log_folder)
 
 class SearchindexingPipeline:
     def process_item(self, item, spider):
+        logger.debug_log(f"Processing item in Pipeline: {item}", 'pipelines.py')
         return item
-
 
 from pymongo import MongoClient
 
@@ -31,7 +45,7 @@ class SaveToMongoDBPipeline:
     if not title_exists:
             # self.db[spider.name].insert_one(dict(item))
             collection.insert_one(item)
-            logging.debug("Article added to MongoDB")
+            logger.debug_log("Article added to MongoDB", 'pipelines.py')
     # Insert data into collection
     # collection.insert_one(item)
 
@@ -60,13 +74,13 @@ class SendURLToAPIPipeline:
             raise DropItem("Missing 'set_url' field in item")
 
         set_urls = item['set_url']
-        payload = {'webId':item['webId'],'urls': set_urls}
+        payload = {'webId': item['webId'], 'urls': set_urls}
 
         try:
             response = requests.post(self.api_url, json=payload)
-            response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
-            spider.logger.info(f"URLs sent to API: {set_urls}")
+            response.raise_for_status()
+            logger.info_log(f"URLs sent to API: {set_urls}", 'pipelines.py')
         except requests.RequestException as e:
-            spider.logger.error(f"Failed to send URLs to API: {e}")
+            logger.error_log(f"Failed to send URLs to API: {e}", 'pipelines.py')
 
         return item

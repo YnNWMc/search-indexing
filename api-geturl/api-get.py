@@ -4,9 +4,28 @@ import requests
 from flask_cors import CORS
 import re
 from datetime import datetime, timedelta
+import sys, os
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all origins on all routes
+
+# PATHNYA AGAK GAK JELAS BUAT IMPORT
+relative_path = "custom_logger.py"
+absolute_path = os.path.abspath(relative_path)
+path_components = absolute_path.split(os.path.sep)
+path_components.pop()
+path_components.pop()
+full_path = os.path.join(*path_components, "logger")
+full_path_with_drive = str(os.path.join(path_components[0], os.path.sep, full_path))
+
+sys.path.insert(1, str(full_path_with_drive))
+
+# sys.path.insert(1, "C:\File Coding Cloud Project\Project\search-indexing\logger")
+import custom_logger as CustomLogger
+
+log_folder = 'C:\\File Coding Cloud Project\\Project\\search-indexing\\logs'
+logger = CustomLogger.CustomLogger(log_folder)
+
 
 conn = sqlite3.connect('db.sqlite', check_same_thread=False)
 
@@ -26,6 +45,8 @@ def check_url_status(url):
             return True
     except requests.RequestException as e:
         print(f"Error checking URL {url}: {e}")
+        logger.error_log(f"Error checking URL {url}: {e}","api-get.py")
+
     return False
 
 
@@ -34,33 +55,37 @@ cursor = conn.cursor()
 cursor.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY AUTOINCREMENT,url VARCHAR(255) NOT NULL,status VARCHAR(255) NOT NULL,web_id VARCHAR(255) NULL,created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);")
 @app.route('/', methods=["GET"])
 def posts():
-    cursor.execute('''
-      SELECT * FROM urls
-    ''')
-    data = cursor.fetchall()
-
-    return jsonify(data)
+    try:
+        cursor.execute("SELECT * FROM urls")
+        data = cursor.fetchall()
+        logger.info_log("Fetched all URLs","api-get.py")
+        return jsonify(data), 200
+    except Exception as e:
+        logger.error_log(f"Error fetching URLs: {e}","api-get.py")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/post_url', methods=['POST'])
 def post_url():
     data = request.get_json()  # Get JSON data from POST request
     if not data:
+        logger.error_log("No JSON data received in request","api-get.py")
         return jsonify({'error': 'No JSON data received'}), 400
     webId = data.get('webId')  # Extract 'urls' field from JSON data
 
     urls = data.get('urls')  # Extract 'urls' field from JSON data
     if not urls:
+        logger.error_log("No URLs provided in request","api-get.py")
         return jsonify({'error': 'No URLs provided'}), 400
     try:
         new_urls = []
         for url in urls:
             status = "valid"
             if not is_valid_url(url):
-                print(f"Invalid URL format: {url}")
+                logger.warning_log(f"Invalid URL format: {url}","api-get.py")
                 status = "not valid"  # Skip invalid URL format
 
             if not check_url_status(url):
-                print(f"URL is not accessible or returns an error: {url}")
+                logger.warning_log(f"URL is not accessible or returns an error: {url}","api-get.py")
                 status = "not valid"    # Skip URL that is not accessible
             # Check if URL already exists in the database
             cursor.execute("SELECT 1 FROM urls WHERE url = ?", (url,))
@@ -76,15 +101,15 @@ def post_url():
         conn.commit()
 
         if new_urls:
-            print('New URLs inserted successfully ')
+            logger.info_log(f"New URLs inserted successfully: {new_urls}","api-get.py")
             return jsonify({'message': 'New URLs inserted successfully', 'urls': new_urls}), 200
         else:
-            print('No new URLs to insert; all URLs already exist ')
+            logger.info_log("No new URLs to insert; all URLs already exist","api-get.py")
             return jsonify({'message': 'No new URLs to insert; all URLs already exist'}), 200
     except Exception as e:
         # Rollback in case of any error
         conn.rollback()
-        print('error: ' + str(e))
+        logger.error_log(f"Error inserting URLs: {e}","api-get.py")
         return jsonify({'error': str(e)}), 500
     
 # Buat update datatable -- Sudah bisa secara real time
@@ -142,11 +167,12 @@ def fetch_data():
             'recordsFiltered': total_records,  
             'data': urls
         }
-
+        logger.info_log("Fetched data for DataTables","api-get.py")
+        
         return jsonify(response), 200
 
     except Exception as e:
-        print(f"Error retrieving URLs: {e}")
+        logger.error_log(f"Error fetching recently created data: {e}","api-get.py")
         return jsonify({'error': str(e)}), 500
     
     
@@ -207,11 +233,11 @@ def fetch_recently_created():
             'recordsFiltered': total_records,  # For simplicity, we assume no additional filtering on the server side
             'data': urls
         }
-
+        logger.info_log("Fetched recently created data for DataTables","api-get.py")
         return jsonify(response), 200
 
     except Exception as e:
-        print(f"Error retrieving recently created URLs: {e}")
+        logger.error_log(f"Error fetching recently created data: {e}","api-get.py")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
